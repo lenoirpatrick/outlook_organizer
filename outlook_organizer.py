@@ -24,9 +24,6 @@ from email.mime.text import MIMEText
 from office365.runtime.auth.user_credential import UserCredential
 from office365.sharepoint.client_context import ClientContext
 
-# Notifications Cogeprint
-from PyPDF2 import PdfFileReader
-
 INBOX = "      Inbox ("
 INDIR = "      Indir ("
 
@@ -302,6 +299,12 @@ def archivemails(indir, archivedir=None, deletearchive=False):
             print_exception()
 
 
+def set_indir(inbox, item):
+    check_dir(inbox, item["dir"])
+    check_dir(inbox.Folders[item["dir"]], item["subdir"])
+    indir = inbox.Folders[item["dir"]].Folders[item["subdir"]]
+    return indir
+
 def check_dir(dir, subdir):
     """ Détermine si un mail peut être déplacé du répertoire source
 
@@ -354,7 +357,6 @@ def save_attachment(attachments, attach_ext, dir, prefix_name=None):
             except Exception as ex:
                 print("[[bright_red]KO[white]]     ctx.web.get_folder_by_server_relative_path(relative_url) : "
                       + relative_url)
-
 
 
 def print_titre(texte):
@@ -449,7 +451,7 @@ if __name__ == "__main__":
     repo = git.Repo(search_parent_directories=True)
     sha = repo.head.object.hexsha
 
-    print("[[green3]OK[white]]     Initialisation du programme")
+    print("[[green3]OK[white]]     Initialisation du programme : " + os.path.basename(__file__))
     print("[[green3]OK[white]]         Librairies python")
     print("[[green3]OK[white]]         Version git : " + sha)
 
@@ -553,187 +555,28 @@ if __name__ == "__main__":
     if config["etapes"]["notifs_mails"] is True:
         index = index + 1
         print_titre(str(index) + " - Traitement des notifications")
-        for item in config["Notifications"]:
+        for item in config["notifications"]:
             if item["active"] is True:
-                indir = inbox.Folders[item["dir"]].Folders[item["subdir"]]
-                archivedir = set_archive_dir(indir, item["deletearchive"])
-
                 if "deletenotif" not in item:
                     item["deletenotif"] = ""
+
+                # Vérification de la présence des répertoires
+                indir = set_indir(inbox, item)
+                archivedir = set_archive_dir(indir, item["deletearchive"])
 
                 move_mail(item["name"], item["keywords"], indir, item["keepInInbox"],
                           lookup_type="Sender", mark_as_read=item["markAsRead"], deletionexception=item["deletenotif"])
 
-                if item["name"] != "COGEPRINT":
-                    archivemails(indir, archivedir, item["deletearchive"])
-                else:
-                    for subdir in ["ANOS", "PND", "RECOMMANDES", "TERMES"]:
-                        indir = inbox.Folders[item["dir"]].Folders[item["subdir"]].Folders[subdir]
-                        archivedir = set_archive_dir(indir)
-                        archivemails(indir, archivedir, item["deletearchive"])
-
-    # Pièces jointes partenaires
-    if config["etapes"]["mails_partenaires"] is True:
-        index = index + 1
-        print_titre(str(index) + " - Traitement des expéditeurs - Pièces jointes")
-        try:
-            # COGEPRINT
-            indir = inbox.Folders['PARTENAIRES'].Folders["COGEPRINT"]
-            archivedir = set_archive_dir(indir)
-            with Progress(SpinnerColumn(), *Progress.get_default_columns(), TimeElapsedColumn(), ) as progress:
-                task = progress.add_task("      COGEPRINT".ljust(30), total=(len(inbox.Items)))
-                for item in inbox.Items:
-                    progress.advance(task)
-                    try:
-                        if "CONFIRMATION DE COMMANDE COGEPRINT" in item.Subject:
-                            dir = config["cogeprint"]["dircommandes"]
-                            save_attachment(item.Attachments, ".PDF", dir)
-                            move_message(item, indir, keep_in_inbox=False)
-                        elif "Danard".upper() in str(item.Sender).upper():
-                            if "DEVIS" in item.Subject.upper() or "OFFRE" in item.Subject.upper():
-                                dir = config["cogeprint"]["dirdevis"]
-                                save_attachment(item.Attachments, ".PDF", dir, prefix_name="DEVIS")
-                                move_message(item, indir, keep_in_inbox=False)
-                        elif "PAO COGEPRINT" in str(item.Sender):
-                            dir = config["cogeprint"]["dirdevis"]
-                            save_attachment(item.Attachments, ".PDF", dir)
-                            move_message(item, indir, keep_in_inbox=False)
-                    except (AttributeError, ):
-                        pass
-                    except Exception as ex:
-                        print_erreur("Err 001_01 : " + str(ex) + " / " + str(item.Subject))
-                        print_exception()
-
-            # GROUPE RENARD
-            indir = inbox.Folders['PARTENAIRES'].Folders["GROUPE RENARD"]
-            archivedir = set_archive_dir(indir)
-            with Progress(SpinnerColumn(), *Progress.get_default_columns(), TimeElapsedColumn(), ) as progress:
-                task = progress.add_task("      GROUPE RENARD".ljust(30), total=len(inbox.Items))
-                for item in inbox.Items:
-                    progress.advance(task)
-
-                    try:
-                        if "RENARD".upper() in str(item.Sender).upper():
-                            if "Proposition de prix".upper() in item.Subject.upper():
-                                dir = config["grouperenard"]["dirdevis"]
-                                save_attachment(item.Attachments, ".PDF", dir, prefix_name="DEVIS")
-                                move_message(item, indir, keep_in_inbox=False)
-
-                            if "Epreuve n".upper() in item.Subject.upper():
-                                dir = config["grouperenard"]["dirbat"]
-                                save_attachment(item.Attachments, ".PDF", dir, prefix_name="BAT")
-                                move_message(item, indir, keep_in_inbox=False)
-                    except (AttributeError, ):
-                        pass
-                    except Exception as ex:
-                        print_erreur("Err 001_02 : " + str(ex) + " / " + str(item.Subject))
-                        print_exception()
-
-            # AZURPARTNER
-            indir = inbox.Folders['PARTENAIRES'].Folders["AZURPARTNER"]
-            archivedir = set_archive_dir(indir)
-            with Progress(SpinnerColumn(), *Progress.get_default_columns(), TimeElapsedColumn(), ) as progress:
-                task = progress.add_task("      AZURPARTNER".ljust(30), total=len(inbox.Items))
-                for item in inbox.Items:
-                    progress.advance(task)
-                    try:
-                        if "TORGUE".upper() in str(item.Sender).upper():
-                            if "Devis" in item.Subject.upper():
-                                dir = config["azurpartner"]["dirdevis"]
-                                save_attachment(item.Attachments, ".PDF", dir, prefix_name="DEVIS")
-                                move_message(item, indir, keep_in_inbox=False)
-                    except (AttributeError, ):
-                        pass
-                    except Exception as ex:
-                        print_erreur("Err 001_03 : " + str(ex) + " / " + str(item.Subject))
-                        print_exception()
-
-            # PREVOIR
-            indir = inbox.Folders['PARTENAIRES'].Folders["PREVOIR"]
-            archivedir = set_archive_dir(indir)
-            with Progress(SpinnerColumn(), *Progress.get_default_columns(), TimeElapsedColumn(), ) as progress:
-                task = progress.add_task("      PREVOIR".ljust(30), total=len(inbox.Items))
-                for item in inbox.Items:
-                    progress.advance(task)
-                    try:
-                        if "Alcina".upper() in str(item.Sender).upper():
-                            if "Stock consommables".upper() in item.Subject.upper():
-                                dir = config["prevoir"]["dirconsommables"]
-                                save_attachment(item.Attachments, ".xlsx", dir,
-                                                prefix_name=str(item.receivedtime)[0:10])
-                                move_message(item, indir, keep_in_inbox=False)
-                    except (AttributeError, ):
-                        pass
-                    except Exception as ex:
-                        print_erreur("Err 001_03 : " + str(ex) + " / " + str(item.Subject))
-                        print_exception()
-
-        except Exception as ex:
-            print_erreur("Err 002 : " + str(ex) + " / " + str(item.Subject))
-            print_exception()
-
-    # Mails partenaires
-    if config["etapes"]["mails_partenaires"] is True:
-        index = index + 1
-        print_titre(str(index) + " - Traitement des messages clients")
-        for item in config["customers"]:
-            if item["active"] is True:
-                print_check(item["team"].encode("latin-1").decode("utf-8") + " > " + item["dir"].encode("latin-1").decode(
-                    "utf-8") + "/" + item["subdir"].encode("latin-1").decode("utf-8"))
-                check_dir(inbox, item["dir"])
-                check_dir(inbox.Folders[item["dir"]], item["subdir"])
-                indir = inbox.Folders[item["dir"]].Folders[item["subdir"]]
-                archivedir = set_archive_dir(indir)
-
-                # Parcours de la boite de réception pour déplacer les messages vers le rep Utilisateur
-                with Progress(SpinnerColumn(), *Progress.get_default_columns(), TimeElapsedColumn(), ) as progress:
-                    libelle = (INBOX + str(len(inbox.Items)) + ")").ljust(30)
-                    task = progress.add_task(libelle, total=len(inbox.Items))
-                    for mail in inbox.Items:
-                        progress.advance(task)
-
-                        for user in item["users"]:
-                            try:
-                                if user.encode("latin-1").decode("utf-8").upper() in str(mail.Sender).upper():
-                                    move_message(mail, indir, keep_in_inbox=True)
-                            except (AttributeError, ):
-                                pass
-                            except Exception as ex:
-                                print_erreur("Err 003: " + str(ex) + " / " + str(mail.Subject))
-                                print_exception()
-
-                # Parcours rep utilisateur pour retrouver des messages dans la inbox et Send Items
-                with Progress(SpinnerColumn(), *Progress.get_default_columns(), TimeElapsedColumn(), ) as progress:
-                    libelle = (INDIR + str(len(indir.Items)) + ")").ljust(30)
-                    task = progress.add_task(libelle, total=len(indir.Items))
-                    for message in indir.Items:
-                        progress.advance(task)
-                        subject = set_subject(message.Subject)
-                        # Parcours de Inbox & Send Items
-                        for liste in [inbox.Items, sentitems.Items]:
-                            for message2 in liste:
-                                subject2 = set_subject(message2.Subject)
-                                if subject in subject2:
-                                    print_deplace(subject2[0:80])
-                                    try:
-                                        message2.Move(indir)
-                                    except (Exception, ):
-                                        print_exception()
-                                    break
-
-                archivemails(indir, archivedir)
+                archivemails(indir, archivedir, item["deletearchive"])
 
     # Projets
     if config["etapes"]["mails_projets"] is True:
         index = index + 1
         print_titre(str(index) + " - Traitement des Projets")
-        for item in config["Projects"]:
+        for item in config["projects"]:
             if item["active"] is True:
                 # Vérification de la présence des répertoires
-                check_dir(inbox, item["dir"])
-                check_dir(inbox.Folders[item["dir"]], item["subdir"])
-
-                indir = inbox.Folders[item["dir"]].Folders[item["subdir"]]
+                indir = set_indir(inbox, item)
                 archivedir = set_archive_dir(indir)
 
                 move_mail(item["name"], item["keywords"], indir, item["keepInInbox"])
@@ -748,54 +591,60 @@ if __name__ == "__main__":
                         for liste in [inbox.Items, sentitems.Items]:
                             parse_dir(liste, indir, subject)
 
-    # Interne
-    if config["etapes"]["mails_AOG"] is True:
-        index = index + 1
-        print_titre(str(index) + " - Traitement des messages internes")
-        for item in config["teams"]:
-            if item["active"] is True:
-                print_check(item["team"].encode("latin-1").decode("utf-8") + " > " + item["dir"].encode("latin-1").decode(
-                    "utf-8") + "/" + item["subdir"].encode("latin-1").decode("utf-8"))
-                check_dir(inbox, item["dir"])
-                check_dir(inbox.Folders[item["dir"]], item["subdir"])
-                indir = inbox.Folders[item["dir"]].Folders[item["subdir"]]
-                archivedir = set_archive_dir(indir)
+    # Parcours des mails externe et interne
+    for global_item in ["mails_partenaires", "mails_internes"]:
+        if config["etapes"][global_item] is True:
+            index = index + 1
+            print_titre(str(index) + " - Traitement des messages " + global_item)
 
-                # Parcours de la boite de réception pour déplacer les messages vers le rep Utilisateur
-                with Progress(SpinnerColumn(), *Progress.get_default_columns(), TimeElapsedColumn(), ) as progress:
-                    libelle = (INBOX + str(len(inbox.Items)) + ")").ljust(30)
-                    task = progress.add_task(libelle, total=len(inbox.Items))
-                    for mail in inbox.Items:
-                        progress.advance(task)
-                        for user in item["users"]:
-                            try:
-                                if user.encode("latin-1").decode("utf-8").upper() in str(mail.Sender).upper():
-                                    move_message(mail, indir, keep_in_inbox=True)
-                            except AttributeError:
-                                pass
-                            except (Exception,):
-                                print_exception()
+            json_section = global_item.split("_")[1]
+            for item in config[json_section]:
+                if item["active"] is True:
+                    print_check(
+                        item["team"].encode("latin-1").decode("utf-8") + " > " + item["dir"].encode("latin-1").decode(
+                            "utf-8") + "/" + item["subdir"].encode("latin-1").decode("utf-8"))
 
-                # Parcours rep utilisateur pour retrouver des messages dans la inbox et Send Items
-                with Progress(SpinnerColumn(), *Progress.get_default_columns(), TimeElapsedColumn(), ) as progress:
-                    libelle = (INDIR + str(len(indir.Items)) + ")").ljust(30)
-                    task = progress.add_task(libelle, total=len(indir.Items))
-                    for message in indir.Items:
-                        progress.advance(task)
-                        subject = set_subject(message.Subject)
-                        # Parcours de Inbox & Send Items
-                        for liste in [inbox.Items, sentitems.Items]:
-                            for message2 in liste:
-                                subject2 = set_subject(message2.Subject)
-                                if subject in subject2:
-                                    print_deplace(subject2[0:80])
-                                    try:
-                                        message2.Move(indir)
-                                    except (Exception,):
-                                        print_exception()
-                                    break
+                    # Vérification de la présence des répertoires
+                    indir = set_indir(inbox, item)
+                    archivedir = set_archive_dir(indir)
 
-                archivemails(indir, archivedir)
+                    # Parcours de la boite de réception pour déplacer les messages vers le rep Utilisateur
+                    with Progress(SpinnerColumn(), *Progress.get_default_columns(), TimeElapsedColumn(), ) as progress:
+                        libelle = (INBOX + str(len(inbox.Items)) + ")").ljust(30)
+                        task = progress.add_task(libelle, total=len(inbox.Items))
+                        for mail in inbox.Items:
+                            progress.advance(task)
+
+                            for user in item["users"]:
+                                try:
+                                    if user.encode("latin-1").decode("utf-8").upper() in str(mail.Sender).upper():
+                                        move_message(mail, indir, keep_in_inbox=True)
+                                except AttributeError:
+                                    pass
+                                except (Exception,):
+
+                                    print_exception()
+
+                    # Parcours rep utilisateur pour retrouver des messages dans la inbox et Send Items
+                    with Progress(SpinnerColumn(), *Progress.get_default_columns(), TimeElapsedColumn(), ) as progress:
+                        libelle = (INDIR + str(len(indir.Items)) + ")").ljust(30)
+                        task = progress.add_task(libelle, total=len(indir.Items))
+                        for message in indir.Items:
+                            progress.advance(task)
+                            subject = set_subject(message.Subject)
+                            # Parcours de Inbox & Send Items
+                            for liste in [inbox.Items, sentitems.Items]:
+                                for message2 in liste:
+                                    subject2 = set_subject(message2.Subject)
+                                    if subject in subject2:
+                                        print_deplace(subject2[0:80])
+                                        try:
+                                            message2.Move(indir)
+                                        except (Exception,):
+                                            print_exception()
+                                        break
+
+                    archivemails(indir, archivedir)
 
     # From Me
     if config["etapes"]["from_me"] is True:
@@ -812,95 +661,6 @@ if __name__ == "__main__":
                         print_supprime(item)
                 except (AttributeError, ):
                     pass
-
-    # Notification COGEPRINT
-    if config["etapes"]["cogeprint_notif"] is True:
-        try:
-            index = index + 1
-            print_titre(str(index) + " - Traitement des notifications Cogeprint")
-            # Notifs Cogeprint
-            cogeprintfolder = inbox.Folders['NOTIFICATIONS'].Folders['COGEPRINT']
-            donedir = inbox.Folders['NOTIFICATIONS'].Folders['COGEPRINT'].Folders['RECOMMANDES']
-            anodir = inbox.Folders['NOTIFICATIONS'].Folders['COGEPRINT'].Folders['ANOS']
-            termesdir = inbox.Folders['NOTIFICATIONS'].Folders['COGEPRINT'].Folders['TERMES']
-
-            messages = cogeprintfolder.Items
-            messages2 = messages
-
-            for email in reversed(messages):
-
-                idcommande = ""
-                nbenvoisposte = 0
-                nbenvoisAOG = 0
-                date_envoie = ""
-                date_miseposte = ""
-
-                # logwrite.info("Subject : " + email.Subject)
-                if "a été expédiée ce jour" in email.body and "RECOMMANDES" in email.Subject:
-                    idcommande = email.Subject.replace("COGEPRINT - ASSURONE RECOMMANDES - Cde ", "")
-                    date_miseposte = email.Senton.date()
-
-                    # Enregistrement de la pièce jointe pour lecture
-                    for attachment in email.Attachments:
-                        savedfile = os.path.join(config["parameters"]["tmpdir"], attachment.FileName)
-                        attachment.SaveAsFile(savedfile)
-
-                        # Lecture de la pièce jointe pour connaitre le nombre d'enveloppes envoyées
-                        pdfname = os.path.join(savedfile)
-                        with open(pdfname, "rb") as f:
-                            document = PdfFileReader(f, "rb")
-                            page = document.getNumPages()
-                            pageObj = document.getPage(page - 1)
-                            pdftext = pageObj.extractText()
-                            for lines in pdftext.split("\n"):
-                                if "Nombre d'envois" in lines:
-                                    nbenvoisposte = int(lines.split(":")[1].replace(" ", ""))
-                                    break
-                        os.remove(pdfname)
-
-                    # Recherche de l'email d'affranchissement d'envoi associé
-                    for email2 in reversed(messages2):
-                        if idcommande in email2.Subject and "a été expédiée ce jour" not in email2.body:
-                            date_envoie = email2.Senton.date()
-                            for line in email2.body.split("\n"):
-                                if "Cette dernière comporte" in line:
-                                    # print(line.split("comporte")[1].split("fichiers")[0].strip())
-                                    nbenvoisAOG = int(
-                                        line.split("comporte")[1].split("fichiers")[0].strip().replace(" ", ""))
-
-                            email2.Unread = False
-                            email.Unread = False
-                            email2.Move(donedir)
-                            email.Move(donedir)
-                elif email.Subject in ["COGEPRINT - ASSURONE RECOMMANDES - ATTENTION ERREUR -",
-                                       "RE: COGEPRINT - ASSURONE RECOMMANDES - ATTENTION ERREUR -",
-                                       "COGEPRINT - ASSURONE RECOMMANDES - ATTENTION ERREUR - Fichiers PDF de plusieurs pages",
-                                       "COGEPRINT - ASSURONE TERMES - ATTENTION ERREUR - Fichiers orphelins",
-                                       "COGEPRINT - ASSURONE TERMES - ATTENTION ERREUR - Erreur CP"]:
-                    email.Unread = False
-                    email.Move(anodir)
-                elif email.Subject in ["COGEPRINT - ASSURONE RECOMMANDES - AUCUN FICHIER A INTEGRER",
-                                       "RE: COGEPRINT - ASSURONE RECOMMANDES - AUCUN FICHIER A INTEGRER"]:
-                    email.Unread = False
-                    email.Move(donedir)
-
-                # TERMES
-                elif email.Subject in ["COGEPRINT - ASSURONE TERMES - INTEGRATION"]:
-                    email.Unread = False
-                    save_attachment(email.Attachments, ".PDF", config["cogeprint"]["dirtermes"])
-                    email.Move(termesdir)
-                if "a été expédiée ce jour" in email.body and "TERMES" in email.Subject:
-                    email.Move(termesdir)
-                # PND
-                elif "COGEPRINT - ASSURONE TERMES - Destruction PND" in email.Subject:
-                    email.Unread = False
-                    save_attachment(email.Attachments, ".PDF", config["cogeprint"]["dirpnd"])
-
-                    email.Move(termesdir)
-        except Exception as ex:
-            print("[[bright_red]KO[white]]     Erreur lors du traitement des notification Cogeprint.")
-            print("[[bright_red]KO[white]]     " + str(ex))
-            press_any_key()
 
     # Notification diverses
     try:
@@ -964,7 +724,7 @@ if __name__ == "__main__":
                         part = 0
                         body = body + "\n"
 
-    # Mails sans réponse partie 1
+    # Mails sans réponse
     if config["etapes"]["unread_mails"] is True:
         index = index + 1
         if send_mail_recap is True:
@@ -977,17 +737,12 @@ if __name__ == "__main__":
             for item in inbox.Items:
                 progress.advance(task)
                 if item.Unread is True:
-                    '''d2 = item.receivedtime
-                    d2 = date(d2.year, d2.month, d2.day)
-                    nbolddays = (date_du_jour - d2)'''
                     nbolddays = get_nb_old_days(item)
                     if send_mail_recap is True:
                         body = body + "      " + item.Subject + " / " + str(item.Sender) + " [" + str(
                             nbolddays.days) + "j]\n"
                     print_no_response(item.Subject, unread=True)
 
-    # Mails sans réponse partie 2
-    if config["etapes"]["unread_mails"] is True:
         index = index + 1
         if send_mail_recap is True:
             body = body + "\n"
