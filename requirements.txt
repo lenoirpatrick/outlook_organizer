@@ -1,0 +1,3 @@
+rich
+PyPDF2
+office365
