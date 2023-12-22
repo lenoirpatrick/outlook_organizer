@@ -76,7 +76,6 @@ def parse_dir(outlookdirin, outlookdirout, subject):
             except (Exception,):
                 # print_exception()
                 print_erreur("Err 004_2 : " + str(ex) + " / " + str(item.Subject))
-                pass
 
 
 def move_message(message, outlookdir, keep_in_inbox=False, mark_as_read=False):
@@ -117,7 +116,6 @@ def is_archivable(mail):
     try:
         nbolddays = get_nb_old_days(mail)
         if outofinboxdays > nbolddays.days:
-            # return False, outofinboxdays - nbolddays.days
             return False
         else:
             return True
@@ -167,7 +165,6 @@ def move_mail(title, kw, folder, keep_in_inbox=False, mark_as_read=False,
             for item in inbox.Items:
                 progress.advance(task)
                 try:
-
                     # Suppression de certains mails par défaut
                     deletemail = False
                     if deletionexception is not None:
@@ -540,12 +537,11 @@ if __name__ == "__main__":
                 for item in liste:
                     progress.advance(task)
                     try:
-                        if item.Unread is False:
-                            if item.Class in [46, 53, 54, 55, 56, 57, 181]:
+                        if not item.Unread:
+                            if item.Class in [46, 53, 54, 55, 57, 181] or (
+                                    item.Class == 43 and str(item.Subject).startswith("Réponse automatique")):
                                 print_supprime(item)
-                            elif item.Class == 43 and str(item.Subject).startswith("Réponse automatique"):
-                                print_supprime(item)
-                        elif item.Class in [56]:
+                        elif item.Class == 56:
                             print_supprime(item)
                     except Exception as ex:
                         print("Err 005 : " + str(ex) + " / " + str(item.Subject))
@@ -582,14 +578,16 @@ if __name__ == "__main__":
                 move_mail(item["name"], item["keywords"], indir, item["keepInInbox"])
 
                 archivemails(indir, archivedir)
-                with Progress(SpinnerColumn(), *Progress.get_default_columns(), TimeElapsedColumn(), ) as progress:
-                    libelle = (INDIR + str(len(indir.Items)) + ")").ljust(30)
-                    task = progress.add_task(libelle, total=len(indir.Items))
-                    for message in indir.Items:
-                        progress.advance(task)
-                        subject = set_subject(message.Subject)
-                        for liste in [inbox.Items, sentitems.Items]:
-                            parse_dir(liste, indir, subject)
+                nb_msg_indir = len(indir.Items)
+                if nb_msg_indir > 0:
+                    with Progress(SpinnerColumn(), *Progress.get_default_columns(), TimeElapsedColumn(), ) as progress:
+                        libelle = (INDIR + str(nb_msg_indir) + ")").ljust(30)
+                        task = progress.add_task(libelle, total=len(indir.Items))
+                        for message in indir.Items:
+                            progress.advance(task)
+                            subject = set_subject(message.Subject)
+                            for liste in [inbox.Items, sentitems.Items]:
+                                parse_dir(liste, indir, subject)
 
     # Parcours des mails externe et interne
     for global_item in ["mails_partenaires", "mails_internes"]:
@@ -600,9 +598,9 @@ if __name__ == "__main__":
             json_section = global_item.split("_")[1]
             for item in config[json_section]:
                 if item["active"] is True:
-                    print_check(
-                        item["team"].encode("latin-1").decode("utf-8") + " > " + item["dir"].encode("latin-1").decode(
-                            "utf-8") + "/" + item["subdir"].encode("latin-1").decode("utf-8"))
+                    title = item["team"].encode("latin-1").decode("utf-8") + " > " + item["dir"].encode("latin-1").decode(
+                            "utf-8") + "/" + item["subdir"].encode("latin-1").decode("utf-8")
+                    print_check(title)
 
                     # Vérification de la présence des répertoires
                     indir = set_indir(inbox, item)
@@ -626,23 +624,25 @@ if __name__ == "__main__":
                                     print_exception()
 
                     # Parcours rep utilisateur pour retrouver des messages dans la inbox et Send Items
-                    with Progress(SpinnerColumn(), *Progress.get_default_columns(), TimeElapsedColumn(), ) as progress:
-                        libelle = (INDIR + str(len(indir.Items)) + ")").ljust(30)
-                        task = progress.add_task(libelle, total=len(indir.Items))
-                        for message in indir.Items:
-                            progress.advance(task)
-                            subject = set_subject(message.Subject)
-                            # Parcours de Inbox & Send Items
-                            for liste in [inbox.Items, sentitems.Items]:
-                                for message2 in liste:
-                                    subject2 = set_subject(message2.Subject)
-                                    if subject in subject2:
-                                        print_deplace(subject2[0:80])
-                                        try:
-                                            message2.Move(indir)
-                                        except (Exception,):
-                                            print_exception()
-                                        break
+                    nb_msg_indir = len(indir.Items)
+                    if nb_msg_indir > 0:
+                        with Progress(SpinnerColumn(), *Progress.get_default_columns(), TimeElapsedColumn(), ) as progress:
+                            libelle = (INDIR + str(nb_msg_indir) + ")").ljust(30)
+                            task = progress.add_task(libelle, total=len(indir.Items))
+                            for message in indir.Items:
+                                progress.advance(task)
+                                subject = set_subject(message.Subject)
+                                # Parcours de Inbox & Send Items
+                                for liste in [inbox.Items, sentitems.Items]:
+                                    for message2 in liste:
+                                        subject2 = set_subject(message2.Subject)
+                                        if subject in subject2:
+                                            print_deplace(subject2[0:80])
+                                            try:
+                                                message2.Move(indir)
+                                            except (Exception,):
+                                                print_exception()
+                                            break
 
                     archivemails(indir, archivedir)
 
