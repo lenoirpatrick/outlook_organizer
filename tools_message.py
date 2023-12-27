@@ -66,7 +66,7 @@ def is_archivable(mail, config):
         :rtyp bool:
     """
     try:
-        nbolddays = get_nb_old_days(mail)
+        nbolddays = get_nb_old_days(mail, config)
         if int(config["outofinboxdays"]) > int(nbolddays.days):
             return False
         else:
@@ -77,7 +77,7 @@ def is_archivable(mail, config):
         return False
 
 
-def get_nb_old_days(mail) -> timedelta:
+def get_nb_old_days(mail, config) -> timedelta:
     """ Calcule le nombre de jours d'ancienneté du mail
 
         :param win32com.client.CDispatch mail: Mail à vérifier
@@ -90,7 +90,7 @@ def get_nb_old_days(mail) -> timedelta:
         d2 = mail.creationtime
     d2 = date(d2.year, d2.month, d2.day)
 
-    nbolddays = (date_du_jour - d2)
+    nbolddays = (config["date_du_jour"] - d2)
     return nbolddays
 
 
@@ -220,7 +220,7 @@ def archivemails(indir, archivedir, config, deletearchive=False):
     """
     for mail in indir.Items:
         try:
-            nbolddays = get_nb_old_days(mail)
+            nbolddays = get_nb_old_days(mail, config)
             if config["archivabledays"] < nbolddays.days:
                 if deletearchive is False:
                     print_archive(mail.Subject)

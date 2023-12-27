@@ -3,11 +3,13 @@
 
 from outlook_organizer import OutlookOrganizer
 from constants import *
+from console_log import print_prologue
 from rich import print
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 import os
+import sys
 
 if __name__ == "__main__":
     os.system('cls')
@@ -15,32 +17,49 @@ if __name__ == "__main__":
     # Création d'une instance de la classe OutlookOrganizer en utilisant le fichier "appsettings_demo.json"
     OO = OutlookOrganizer("appsettings_demo.json")
 
+    print_prologue(OO.config)
+
     # Suppression des éléments dans la corbeille Outlook
     OO.empty_trash()
 
     # Suppression des notifications et invitations
-    OO.delete_notifs_invits()
+    if OO.config["step_notifs_invits"] is True:
+        OO.delete_notifs_invits()
 
     # Gestion des notifications de mails
-    OO.notifs_mails()
+    if OO.config["step_notifs_mails"] is True:
+        OO.notifs_mails()
 
     # Gestion des mails de projets
-    OO.mails_projets()
+    if OO.config["step_mails_projets"] is True:
+        OO.mails_projets()
 
-    # Gestion des mails d'e-mails
-    OO.mails_emails()
+    # Gestion des mails partenaires et interne
+    for config_params in ["step_mails_partenaires", "step_mails_internes"]:
+        if OO.config[config_params] is True:
+            OO.mails_emails(config_params.split("_")[2])
 
     # Gestion des mails provenant de l'utilisateur actuel
-    OO.mails_from_me()
+    if OO.config["step_from_me"] is True:
+        OO.mails_from_me()
 
     # Gestion des notifications diverses
-    OO.notifs_divers()
+    if OO.config["step_notifs_invits"] is True:
+        OO.notifs_divers()
 
-    # Récapitulatif des e-mails
-    OO.recap_email()
+    # On ne fait pas ces étapes l'après midi
+    if OO.config["now"].hour > OO.time_short_version:
+        sys.exit(0)
+
+    # Récapitulatif des rdvs
+    if OO.config["step_email_appointments"] is True:
+        OO.recap_email()
 
     # Gestion des e-mails sans réponse
-    OO.mails_sans_reponse()
+    if OO.config["step_unread_mails"] is True:
+        OO.mails_sans_reponse()
+
+    print()
 
     # Envoi d'un récapitulatif par e-mail si la condition est vraie
     if OO.send_mail_recap is True:

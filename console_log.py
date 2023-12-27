@@ -3,6 +3,8 @@
 from rich import print
 from rich.table import Table
 from rich.console import Console
+import os
+import git
 
 
 def table_recap(inbox, sentitems, deleteditems):
@@ -115,3 +117,28 @@ def print_exception():
     """
     console = Console()
     console.print_exception(show_locals=True)
+    import sys
+    sys.exit()
+
+
+def print_prologue(config):
+    repo = git.Repo(search_parent_directories=True)
+    sha = repo.head.object.hexsha
+
+    print("[[green3]OK[white]]     Initialisation du programme : " + os.path.basename(__file__))
+    print("[[green3]OK[white]]         Librairies python")
+    print("[[green3]OK[white]]         Version git : " + sha)
+
+    ''' STATIC '''
+    print("[[green3]OK[white]]         Date : " + str(config["now"]))
+
+    print("[[green3]OK[white]]     Chargement du fichier de paramétrage")
+
+    print("[[green3]OK[white]]         outofinboxdays: " + str(config["outofinboxdays"]))
+    print("[[green3]OK[white]]         archivabledays: " + str(config["archivabledays"]))
+
+    # Accès via Proxy
+    proxy_address = config["proxy_address"]
+    os.environ["HTTP_PROXY"] = proxy_address
+    print("[[green3]OK[white]]     Chargement du proxy")
+    print("[[green3]OK[white]]         " + proxy_address)
