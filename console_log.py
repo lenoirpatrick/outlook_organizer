@@ -1,10 +1,6 @@
 #!python3
 # -*- coding: utf-8 -*-
-from rich import print
-from rich.table import Table
-from rich.console import Console
-import os
-import git
+from constants import *
 
 
 def table_recap(inbox, sentitems, deleteditems):
@@ -142,3 +138,4 @@ def print_prologue(config):
     os.environ["HTTP_PROXY"] = proxy_address
     print("[[green3]OK[white]]     Chargement du proxy")
     print("[[green3]OK[white]]         " + proxy_address)
+    print("---")

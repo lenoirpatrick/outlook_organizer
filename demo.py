@@ -1,21 +1,15 @@
 #!python3
 # -*- coding: utf-8 -*-
-
-from outlook_organizer import OutlookOrganizer
 from constants import *
-from console_log import print_prologue
-from rich import print
-import smtplib
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
-import os
-import sys
+from outlook_organizer import OutlookOrganizer
+from console_log import print_prologue, table_recap, press_any_key
+
 
 if __name__ == "__main__":
     os.system('cls')
 
     # Création d'une instance de la classe OutlookOrganizer en utilisant le fichier "appsettings_demo.json"
-    OO = OutlookOrganizer("appsettings_demo.json")
+    OO = OutlookOrganizer("appsettings_reel.json")
 
     print_prologue(OO.config)
 
@@ -68,7 +62,7 @@ if __name__ == "__main__":
         # Construction du message e-mail
         message['From'] = OO.sender_address
         message['To'] = OO.user_email
-        message['Subject'] = "Recap journalier " + str(date_du_jour)
+        message['Subject'] = "Recap journalier " + str(OO.config["date_du_jour"])
         message.attach(MIMEText(OO.body, 'plain'))
 
         # Connexion au serveur SMTP et envoi du message
@@ -79,3 +73,7 @@ if __name__ == "__main__":
         session.sendmail(OO.sender_address, OO.user_email, text)
         session.quit()
         print("[green3]Message recap envoyé")
+
+    print("[green3]Traitement terminé")
+    table_recap(inbox, sentitems, deleteditems)
+    press_any_key()

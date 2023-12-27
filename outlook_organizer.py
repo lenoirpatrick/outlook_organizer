@@ -6,18 +6,9 @@ import json
 import os
 from datetime import timedelta
 
-# Accès Outlook
-import win32com.client
-from win32com.client import Dispatch
 
-# Rich text dans la console
-from rich import print
-from rich.progress import Progress, TimeElapsedColumn, SpinnerColumn
 
-# Envoie d'email
-import smtplib
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
+
 
 from constants import *
 from console_log import (table_recap, print_titre, print_check, print_no_response, print_deplace, print_supprime,
@@ -399,7 +390,7 @@ if __name__ == "__main__":
     OO = OutlookOrganizer("appsettings_demo.json")
 
     # Affichage prologue
-    print_prologue()
+    print_prologue(OO.config)
 
     # Ouverture d'Outlook
     try:
@@ -449,7 +440,7 @@ if __name__ == "__main__":
         OO.notifs_divers()
 
     # On ne fait pas ces étapes l'après midi
-    if now.hour > OO.time_short_version:
+    if OO.config["now"].hour > OO.time_short_version:
         sys.exit(0)
 
     # Récapitulatif des rdvs
@@ -469,7 +460,7 @@ if __name__ == "__main__":
         # Construction du message e-mail
         message['From'] = OO.sender_address
         message['To'] = OO.user_email
-        message['Subject'] = "Recap journalier " + str(date_du_jour)
+        message['Subject'] = "Recap journalier " + str(OO.config["date_du_jour"])
         message.attach(MIMEText(OO.body, 'plain'))
 
         # Connexion au serveur SMTP et envoi du message

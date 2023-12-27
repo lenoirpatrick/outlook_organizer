@@ -1,13 +1,5 @@
 #!python3
 # -*- coding: utf-8 -*-
-from rich.progress import Progress, TimeElapsedColumn, SpinnerColumn
-from datetime import timedelta
-import os
-
-# Connexion à SharePoint
-from office365.runtime.auth.user_credential import UserCredential
-from office365.sharepoint.client_context import ClientContext
-
 from constants import *
 from console_log import (print_check, print_fichier, print_archive, print_deplace, print_supprime, print_erreur,
                          print_exception)

@@ -1,8 +1,29 @@
 #!python3
 # -*- coding: utf-8 -*-
-from win32com.client import Dispatch
-from datetime import datetime, date
+import os
+import sys
+import git
 
+# Rich text dans la console
+from rich import print
+from rich.table import Table
+from rich.console import Console
+from rich.progress import Progress, TimeElapsedColumn, SpinnerColumn
+
+# Envoie d'email
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+
+# Connexion à SharePoint
+from office365.runtime.auth.user_credential import UserCredential
+from office365.sharepoint.client_context import ClientContext
+
+# Accès Outlook
+import win32com.client
+from win32com.client import Dispatch
+
+from datetime import datetime, date, timedelta
 
 INBOX = "      Inbox ("
 INDIR = "      Indir ("
