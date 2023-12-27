@@ -11,7 +11,6 @@ def set_subject(subject) -> str:
      :param str subject: Sujet du mail à vérifier
 
      :return: Sujet corrigé
-     :rtype str:
      """
     for item in ["RE: ", "TR: "]:
         if item in subject:
@@ -48,14 +47,13 @@ def move_message(message, outlookdir, config, keep_in_inbox=False, mark_as_read=
         # print_exception()
 
 
-def is_archivable(mail, config):
+def is_archivable(mail, config) -> bool:
     """ Détermine si un mail peut être déplacé du répertoire source
 
         :param config:
         :param win32com.client.CDispatch mail: Mail à vérifier
 
         :return: Le mail doit-il être archivé
-        :rtyp bool:
     """
     try:
         nbolddays = get_nb_old_days(mail, config)
@@ -72,13 +70,14 @@ def is_archivable(mail, config):
 def get_nb_old_days(mail, config) -> timedelta:
     """ Calcule le nombre de jours d'ancienneté du mail
 
+        :param config:
         :param win32com.client.CDispatch mail: Mail à vérifier
 
         :return: Le nombre de jours du mail
     """
     try:
         d2 = mail.receivedtime
-    except (Exception,):
+    except AttributeError:
         d2 = mail.creationtime
     d2 = date(d2.year, d2.month, d2.day)
 
@@ -97,17 +96,8 @@ def move_mail(item, folder, config, lookup_type="Subject"):
     kw = item["keywords"]
     keep_in_inbox = item["keepInInbox"]
 
-    mark_as_read = False
-    try:
-        mark_as_read = item["markAsRead"]
-    except (Exception,):
-        pass
-
-    deletionexception = None
-    try:
-        deletionexception = item["deletenotif"]
-    except (Exception, ):
-        pass
+    mark_as_read = item.get("markAsRead")
+    deletionexception = item.get("deletenotif")
 
     print_check(title)
 
@@ -133,11 +123,9 @@ def move_mail(item, folder, config, lookup_type="Subject"):
 
                     # Mail 'urgent' et non lu à ne pas traiter
                     nepastraiter = False
-                    try:
+                    if hasattr(item, 'Importance') and hasattr(item, 'Unread'):
                         if item.Importance == 2 and item.Unread is True:
                             nepastraiter = True
-                    except (Exception, ):
-                        pass
 
                     # Traitement du mail
                     if deletemail is False and nepastraiter is False:

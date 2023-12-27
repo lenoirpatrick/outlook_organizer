@@ -3,7 +3,7 @@
 from constants import *
 
 
-def table_recap(inbox, sentitems, deleteditems):
+def table_recap():
     """Affiche un tableau récapitulatif des principaux répertoires Outlook.
 
     Args:
@@ -125,7 +125,6 @@ def print_prologue(config):
     print("[[green3]OK[white]]         Librairies python")
     print("[[green3]OK[white]]         Version git : " + sha)
 
-    ''' STATIC '''
     print("[[green3]OK[white]]         Date : " + str(config["now"]))
 
     print("[[green3]OK[white]]     Chargement du fichier de paramétrage")

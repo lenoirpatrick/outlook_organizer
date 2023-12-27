@@ -1,15 +1,5 @@
 #!python3
 # -*- coding: utf-8 -*-
-import git
-import sys
-import json
-import os
-from datetime import timedelta
-
-
-
-
-
 from constants import *
 from console_log import (table_recap, print_titre, print_check, print_no_response, print_deplace, print_supprime,
                          press_any_key, print_exception, print_prologue)
@@ -50,13 +40,13 @@ class OutlookOrganizer:
         self.email_smtp = self.__config['email']['smtp']
         self.email_port = self.__config['email']['port']
 
-        # Déterminer le trimestre pour les sous-dirs d'archivage
+        # Déterminer le trimestre pour les sous dirs d'archivage
         now = datetime.now()  # date et heure actuelles
         jour_en_cours = now.day  # Jour en cours
 
         # Date du jour
         date_du_jour = date(now.year, now.month, now.day)  # Date du jour (année, mois, jour)
-        timenow = now.time()  # Heure actuelle
+        # timenow = now.time()  # Heure actuelle
 
         datequarter = now - timedelta(self.__archivabledays)
         annee = datequarter.year
@@ -184,8 +174,7 @@ class OutlookOrganizer:
                 # Affiche une barre de progression pour le traitement des e-mails
                 with Progress(SpinnerColumn(), *Progress.get_default_columns(),
                               TimeElapsedColumn(), ) as progress:
-                    libelle = (INDIR + str(nb_msg_indir) + ")").ljust(
-                        30)  # Étiquette pour la barre de progression
+                    libelle = (INDIR + str(nb_msg_indir) + ")").ljust(30)  # Étiquette pour la barre de progression
                     task = progress.add_task(libelle, total=len(indir.Items))  # Tâche pour la progression
                     for message in indir.Items:
                         progress.advance(task)  # Avance dans la barre de progression
@@ -258,7 +247,6 @@ class OutlookOrganizer:
                     except AttributeError:
                         pass
                     except (Exception,):
-
                         print_exception()
 
     def mails_from_me(self):
@@ -373,8 +361,8 @@ class OutlookOrganizer:
     def process_sans_reponse(self, item):
         repondu = False
 
-        for inboxitems in inbox.Items:
-            if item.Subject in inboxitems.Subject:
+        for inbox_items in inbox.Items:
+            if item.Subject in inbox_items.Subject:
                 repondu = True
 
         # Le mail n'a pas de réponses et est archivable
@@ -387,7 +375,7 @@ if __name__ == "__main__":
     os.system('cls')
 
     # Création d'une instance de la classe OutlookOrganizer en utilisant le fichier "appsettings_demo.json"
-    OO = OutlookOrganizer("appsettings_demo.json")
+    OO = OutlookOrganizer()
 
     # Affichage prologue
     print_prologue(OO.config)
@@ -400,7 +388,7 @@ if __name__ == "__main__":
         sentitems = outlook.GetDefaultFolder(5)
         deleteditems = outlook.GetDefaultFolder(3)
         appointments = outlook.GetDefaultFolder(9).Items
-        table_recap(inbox, sentitems, deleteditems)
+        table_recap()
     except (Exception, ):
         print("[[bright_red]KO[white]]         L'accès Outlook n'est pas disponible, le programme va s'arrêter.")
         press_any_key()
@@ -473,5 +461,5 @@ if __name__ == "__main__":
         print("[green3]Message recap envoyé")
 
     print("[green3]Traitement terminé")
-    table_recap(inbox, sentitems, deleteditems)
+    table_recap()
     press_any_key()

@@ -75,5 +75,5 @@ if __name__ == "__main__":
         print("[green3]Message recap envoyé")
 
     print("[green3]Traitement terminé")
-    table_recap(inbox, sentitems, deleteditems)
+    table_recap()
     press_any_key()
