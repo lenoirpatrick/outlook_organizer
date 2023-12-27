@@ -1,6 +1,8 @@
 #!python3
 # -*- coding: utf-8 -*-
 from rich.progress import Progress, TimeElapsedColumn, SpinnerColumn
+from datetime import timedelta
+import os
 
 # Connexion à SharePoint
 from office365.runtime.auth.user_credential import UserCredential
@@ -25,10 +27,11 @@ def set_subject(subject) -> str:
     return subject
 
 
-def move_message(message, outlookdir, keep_in_inbox=False, mark_as_read=False):
+def move_message(message, outlookdir, config, keep_in_inbox=False, mark_as_read=False):
     """
     Utilisé pour parcours message par message un répertoire
 
+    :param config:
     :param win32com.client.CDispatch message: message à déplacer
     :param win32com.client.CDispatch outlookdir: répertoire où déplacer
     :param boolean keep_in_inbox:
@@ -37,7 +40,7 @@ def move_message(message, outlookdir, keep_in_inbox=False, mark_as_read=False):
     move = False
     try:
         if keep_in_inbox is True:
-            if is_archivable(message) is True:
+            if is_archivable(message, config) is True:
                 move = True
         else:
             move = True
@@ -53,9 +56,10 @@ def move_message(message, outlookdir, keep_in_inbox=False, mark_as_read=False):
         # print_exception()
 
 
-def is_archivable(mail):
+def is_archivable(mail, config):
     """ Détermine si un mail peut être déplacé du répertoire source
 
+        :param config:
         :param win32com.client.CDispatch mail: Mail à vérifier
 
         :return: Le mail doit-il être archivé
@@ -63,12 +67,12 @@ def is_archivable(mail):
     """
     try:
         nbolddays = get_nb_old_days(mail)
-        if outofinboxdays > nbolddays.days:
+        if int(config["outofinboxdays"]) > int(nbolddays.days):
             return False
         else:
             return True
     except Exception as ex:
-        print_erreur("Err 005 : " + str(ex) + " / " + str(mail.Subject))
+        print_erreur("Err tools_message 005 : " + str(ex) + " / " + str(mail.Subject))
         print_exception()
         return False
 
@@ -90,18 +94,29 @@ def get_nb_old_days(mail) -> timedelta:
     return nbolddays
 
 
-def move_mail(title, kw, folder, keep_in_inbox=False, mark_as_read=False,
-              lookup_type="Subject", deletionexception=None):
+def move_mail(item, folder, config, lookup_type="Subject"):
     """ Deplacement de mail en fonction d'une liste de keywords (sujets)
-
-        :param str title: Mail à vérifier
-        :param list kw: Mail à vérifier
+        :param config:
+        :param item:
         :param win32com.client.CDispatch folder: Mail à vérifier
-        :param bool keep_in_inbox: Mail à vérifier
-        :param bool mark_as_read: Mail à vérifier
         :param str lookup_type: Mail à vérifier
-        :param list deletionexception: Mail à vérifier
         """
+    title = item["name"]
+    kw = item["keywords"]
+    keep_in_inbox = item["keepInInbox"]
+
+    mark_as_read = False
+    try:
+        mark_as_read = item["markAsRead"]
+    except (Exception,):
+        pass
+
+    deletionexception = None
+    try:
+        deletionexception = item["deletenotif"]
+    except (Exception, ):
+        pass
+
     print_check(title)
 
     move = True
@@ -117,7 +132,6 @@ def move_mail(title, kw, folder, keep_in_inbox=False, mark_as_read=False,
                     deletemail = False
                     if deletionexception is not None:
                         for subject_name in deletionexception:
-                            # print(deletionexception)
                             try:
                                 if subject_name in item.Subject:
                                     print_supprime(item)
@@ -137,15 +151,13 @@ def move_mail(title, kw, folder, keep_in_inbox=False, mark_as_read=False,
                     if deletemail is False and nepastraiter is False:
                         if keep_in_inbox is True:
                             for keyword in kw:
-                                # print(keyword)
                                 if lookup_type == "Sender":
                                     lookup_field = item.Sender
                                 else:
                                     lookup_field = item.Subject
 
                                 if keyword.encode("latin-1").decode("utf-8").lower() in str(lookup_field).lower():
-                                    # print("ici")
-                                    if is_archivable(item) is True:
+                                    if is_archivable(item, config) is True:
                                         # Affichage du mail
                                         print_deplace(item.Subject)
 
@@ -161,7 +173,6 @@ def move_mail(title, kw, folder, keep_in_inbox=False, mark_as_read=False,
                                     lookup_field = item.Sender
                                 else:
                                     lookup_field = item.Subject
-                                # print(keyword.encode("latin-1").decode("utf-8"))
                                 if keyword.encode("latin-1").decode("utf-8").lower() in str(lookup_field).lower():
                                     print_deplace(item.Subject)
                                     if mark_as_read is True:
@@ -184,7 +195,7 @@ def move_mail(title, kw, folder, keep_in_inbox=False, mark_as_read=False,
             for item in sentitems.Items:
                 progress.advance(task)
                 if keep_in_inbox is True:
-                    if is_archivable(item) is True:
+                    if is_archivable(item, config) is True:
                         for keyword in kw:
                             if keyword.lower() in item.Subject.lower():
                                 print_deplace(item.Subject)
@@ -200,9 +211,9 @@ def move_mail(title, kw, folder, keep_in_inbox=False, mark_as_read=False,
                             break
 
 
-def archivemails(indir, archivedir=None, deletearchive=False):
+def archivemails(indir, archivedir, config, deletearchive=False):
     """ Archive les mails du répertoire en paramètre
-
+    :param config:
     :param win32com.client.CDispatch indir: Répertoire d'entrée
     :param win32com.client.CDispatch archivedir: Répertoire d'archive
     :param bool deletearchive: Suppresion ou archivage du mail
@@ -210,7 +221,7 @@ def archivemails(indir, archivedir=None, deletearchive=False):
     for mail in indir.Items:
         try:
             nbolddays = get_nb_old_days(mail)
-            if archivabledays < nbolddays.days:
+            if config["archivabledays"] < nbolddays.days:
                 if deletearchive is False:
                     print_archive(mail.Subject)
                     mail.Move(archivedir)
@@ -220,7 +231,7 @@ def archivemails(indir, archivedir=None, deletearchive=False):
             print_exception()
 
 
-def save_attachment(attachments, attach_ext, dir, prefix_name=None):
+def save_attachment(attachments, attach_ext, dir, config, prefix_name=None):
     """Sauvegarde la pièce joint sur SharePoint
 
     Args:
@@ -229,6 +240,8 @@ def save_attachment(attachments, attach_ext, dir, prefix_name=None):
         dir: Répertoire où copier les fichiers
         prefix_name: Préfixe des fichiers à utiliser
     """
+    relative_url = dir
+
     for i in range(1, len(attachments) + 1):
         attachment = attachments.Item(i)
         # the name of attachment file
@@ -239,24 +252,21 @@ def save_attachment(attachments, attach_ext, dir, prefix_name=None):
 
         if attachment_name.endswith(attach_ext.upper()):
             try:
-                attach_file = os.path.join(config["parameters"]["tmpdir"], attachment_name)
+                attach_file = os.path.join(config["sharepoint_sp_site"], attachment_name)
                 attachment.SaveASFile(attach_file)
 
-                # sp_site = config["sharepoint"]["sp_site"]
-                relative_url = dir
-                client_credentials = UserCredential(sharepoint_login, sharepoint_pass)
-                ctx = ClientContext(sharepoint_sp_site).with_credentials(client_credentials)
+                client_credentials = UserCredential(config["sharepoint_login"], config["sharepoint_pass"])
+                ctx = ClientContext(config["sharepoint_sp_site"]).with_credentials(client_credentials)
 
-                remotepath = relative_url + "/" + attachment_name  # "  # existing folder path under sharepoint site.
+                remotepath = relative_url + "/" + attachment_name  # existing folder path under sharepoint site.
                 print_fichier(remotepath)
                 with open(attach_file, 'rb') as content_file:
                     file_content = content_file.read()
 
                 dir_name, name = os.path.split(remotepath)
 
-                file = ctx.web.get_folder_by_server_relative_url(dir_name).upload_file(name,
-                                                                                  file_content).execute_query()
+                ctx.web.get_folder_by_server_relative_url(dir_name).upload_file(name, file_content).execute_query()
                 os.remove(attach_file)
-            except Exception as ex:
+            except (Exception, ):
                 print("[[bright_red]KO[white]]     ctx.web.get_folder_by_server_relative_path(relative_url) : "
                       + relative_url)

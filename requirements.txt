@@ -3,3 +3,4 @@ office365_rest_client==2.2.0
 Office365_REST_Python_Client==2.4.3
 pywin32==304
 rich==13.7.0
+office365

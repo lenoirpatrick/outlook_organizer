@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 import win32com.client
 
-from constants import *
 from tools_message import set_subject, move_message
 from console_log import print_erreur
 
@@ -49,9 +48,10 @@ def check_dir(dir, subdir):
         dir.Folders.Add(subdir)
 
 
-def set_archive_dir(indir, deletion_dir=False) -> win32com.client.CDispatch:
+def set_archive_dir(indir, quarter, deletion_dir=False) -> win32com.client.CDispatch:
     """ Validation du répertoire d'archive de mail. S'il n'existe pas, le répertoire est créé
 
+    :param quarter: Numéro du trimestre
     :param win32com.client.CDispatch indir: Mail à vérifier
     :param bool deletion_dir: Mail à vérifier
 

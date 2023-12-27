@@ -31,9 +31,20 @@
 ### Imports utilisés
 
 - datetime
-- json
-- os
 - win32com.client
+
+## .\demo.py
+
+> Description : 
+
+### Imports utilisés
+
+- constants
+- email.mime.multipart
+- email.mime.text
+- outlook_organizer
+- rich
+- smtplib
 
 ## .\outlook_organizer.py
 
@@ -47,6 +58,8 @@
 - email.mime.multipart
 - email.mime.text
 - git
+- json
+- os
 - rich
 - rich.progress
 - smtplib
@@ -55,13 +68,27 @@
 - tools_message
 - win32com.client
 
+### Fonctions et classes
+
+- Class: **OutlookOrganizer**
+- Function: **__init__** (Classe: ***['self', 'jsonfile']***)
+- Function: **empty_trash** (Classe: ***['self']***)
+- Function: **delete_notifs_invits** (Classe: ***['self']***)
+- Function: **notifs_mails** (Classe: ***['self']***)
+- Function: **mails_projets** (Classe: ***['self']***)
+- Function: **mails_emails** (Classe: ***['self']***)
+- Function: **mails_from_me** (Classe: ***['self']***)
+- Function: **notifs_divers** (Classe: ***['self']***)
+- Function: **recap_email** (Classe: ***['self']***)
+- Function: **mails_sans_reponse** (Classe: ***['self']***)
+
 ## .\tools_dir.py
 
 > Description : 
 
 ### Imports utilisés
 
-- constants
+- console_log
 - tools_message
 - win32com.client
 
@@ -70,7 +97,7 @@
 - Function: **parse_dir** (Classe: ***['outlookdirin', 'outlookdirout', 'subject']***)
 - Function: **set_indir** (Classe: ***['inbox', 'item']***)
 - Function: **check_dir** (Classe: ***['dir', 'subdir']***)
-- Function: **set_archive_dir** (Classe: ***['indir', 'deletion_dir']***)
+- Function: **set_archive_dir** (Classe: ***['indir', 'quarter', 'deletion_dir']***)
 
 ## .\tools_message.py
 
@@ -80,17 +107,19 @@
 
 - console_log
 - constants
+- datetime
 - office365.runtime.auth.user_credential
 - office365.sharepoint.client_context
+- os
 - rich.progress
 
 ### Fonctions et classes
 
 - Function: **set_subject** (Classe: ***['subject']***)
-- Function: **move_message** (Classe: ***['message', 'outlookdir', 'keep_in_inbox', 'mark_as_read']***)
-- Function: **is_archivable** (Classe: ***['mail']***)
+- Function: **move_message** (Classe: ***['message', 'outlookdir', 'config', 'keep_in_inbox', 'mark_as_read']***)
+- Function: **is_archivable** (Classe: ***['mail', 'config']***)
 - Function: **get_nb_old_days** (Classe: ***['mail']***)
-- Function: **move_mail** (Classe: ***['title', 'kw', 'folder', 'keep_in_inbox', 'mark_as_read', 'lookup_type', 'deletionexception']***)
-- Function: **archivemails** (Classe: ***['indir', 'archivedir', 'deletearchive']***)
-- Function: **save_attachment** (Classe: ***['attachments', 'attach_ext', 'dir', 'prefix_name']***)
+- Function: **move_mail** (Classe: ***['item', 'folder', 'config', 'lookup_type']***)
+- Function: **archivemails** (Classe: ***['indir', 'archivedir', 'config', 'deletearchive']***)
+- Function: **save_attachment** (Classe: ***['attachments', 'attach_ext', 'dir', 'config', 'prefix_name']***)
 
