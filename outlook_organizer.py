@@ -45,9 +45,10 @@ if __name__ == "__main__":
     print("[[green3]OK[white]]         archivabledays: " + str(archivabledays))
 
     # Accès via Proxy
-    os.environ["HTTP_PROXY"] = config["proxy"]["address"]
+
+    os.environ["HTTP_PROXY"] = proxy_address
     print("[[green3]OK[white]]     Chargement du proxy")
-    print("[[green3]OK[white]]         " + config["proxy"]["address"])
+    print("[[green3]OK[white]]         " + proxy_address)
 
     # Ouverture d'Outlook
     try:
@@ -66,7 +67,6 @@ if __name__ == "__main__":
     print("[[green3]OK[white]]     Définition des variables globales")
 
     print("[[green3]OK[white]]     Démarrage de l'application")
-    print()
     print()
 
     index = 0
@@ -218,14 +218,15 @@ if __name__ == "__main__":
     if config["etapes"]["from_me"] is True:
         index = index + 1
         print_titre(
-            str(index) + " - Suppression des messages en inbox de moi vers @editique-ccm / plenoir.sefas@gmail.com")
+            str(index) + " - Suppression des messages en inbox de moi vers " + user_email +
+            " / " + sender_address)
         with Progress(SpinnerColumn(), *Progress.get_default_columns(), TimeElapsedColumn(), ) as progress:
             libelle = (INBOX + str(len(inbox.Items)) + ")").ljust(30)
             task = progress.add_task(libelle, total=len(inbox.Items))
             for item in inbox.Items:
                 try:
                     progress.advance(task)
-                    if str(item.Sender) == "Patrick LENOIR" or str(item.Sender) == "plenoir.sefas@gmail.com":
+                    if str(item.Sender) in [user_name, user_email, sender_address]:
                         print_supprime(item)
                 except (AttributeError, ):
                     pass
@@ -340,26 +341,27 @@ if __name__ == "__main__":
                             body = body + "      " + item.Subject + " / " + str(item.Sender) + " [" + str(
                                 nbolddays.days) + "j]\n"
 
+    print()
     if send_mail_recap is True:
-        sender_address = config["email"]["sender_address"]
-        sender_pass = config["email"]["sender_pass"]
-        receiver_address = config["email"]["receiver_address"]
+
+        # receiver_address = config["email"]["receiver_address"]
 
         # Outlook = win32com.client.Dispatch("Outlook.Application")
-        ns = outlook.GetNamespace("MAPI")
+        # ns = Outlook.GetNamespace("MAPI")
         message = MIMEMultipart()
 
         message['From'] = sender_address
-        message['To'] = receiver_address
+        message['To'] = user_email
         message['Subject'] = "Recap journalier " + str(date_du_jour)
         message.attach(MIMEText(body, 'plain'))
         session = smtplib.SMTP(config["email"]["smtp"], config["email"]["port"])  # use gmail with port
         session.starttls()  # enable security
         session.login(sender_address, sender_pass)  # login with mail_id and password
         text = message.as_string()
-        session.sendmail(sender_address, receiver_address, text)
+        session.sendmail(sender_address, user_email, text)
         session.quit()
-    else:
-        table_recap(inbox, sentitems, deleteditems)
-        print("[green3]Traitement terminé")
-        press_any_key()
+        print("[green3]Message recap envoyé")
+
+    print("[green3]Traitement terminé")
+    table_recap(inbox, sentitems, deleteditems)
+    press_any_key()

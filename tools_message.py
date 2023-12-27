@@ -242,10 +242,10 @@ def save_attachment(attachments, attach_ext, dir, prefix_name=None):
                 attach_file = os.path.join(config["parameters"]["tmpdir"], attachment_name)
                 attachment.SaveASFile(attach_file)
 
-                sp_site = config["sharepoint"]["sp_site"]
+                # sp_site = config["sharepoint"]["sp_site"]
                 relative_url = dir
-                client_credentials = UserCredential(config["sharepoint"]["login"], config["sharepoint"]["pass"])
-                ctx = ClientContext(sp_site).with_credentials(client_credentials)
+                client_credentials = UserCredential(sharepoint_login, sharepoint_pass)
+                ctx = ClientContext(sharepoint_sp_site).with_credentials(client_credentials)
 
                 remotepath = relative_url + "/" + attachment_name  # "  # existing folder path under sharepoint site.
                 print_fichier(remotepath)

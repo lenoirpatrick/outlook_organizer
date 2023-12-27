@@ -4,6 +4,7 @@ import win32com.client
 
 from constants import *
 from tools_message import set_subject, move_message
+from console_log import print_erreur
 
 
 def parse_dir(outlookdirin, outlookdirout, subject):

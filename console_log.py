@@ -23,6 +23,7 @@ def print_titre(texte):
 
     :param str texte: Texte à afficher
     """
+    print()
     print("[blue]" + str(texte))
 
 

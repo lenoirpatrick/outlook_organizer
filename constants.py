@@ -9,6 +9,7 @@ from datetime import datetime, date, timedelta
 INBOX = "      Inbox ("
 INDIR = "      Indir ("
 
+# Configuration de l'application
 with open(os.path.join(os.path.dirname(__file__), 'appsettings.json')) as json_data:
     config = json.load(json_data)
 outofinboxdays = config['parameters']['outofinboxdays']
@@ -31,3 +32,17 @@ inbox = outlook.GetDefaultFolder(6)
 sentitems = outlook.GetDefaultFolder(5)
 deleteditems = outlook.GetDefaultFolder(3)
 appointments = outlook.GetDefaultFolder(9).Items
+
+# utilisateur
+user_email = config['user']['user_email']
+user_name = config['user']['user_name']
+proxy_address = config["user"]["proxy_address"]
+
+# Sharepoint config
+sharepoint_sp_site = config["user"]["sharepoint_sp_site"]
+sharepoint_login = config["user"]["sharepoint_login"]
+sharepoint_pass = config["user"]["sharepoint_pass"]
+
+# email config sender
+sender_address = config["email"]["sender_address"]
+sender_pass = config["email"]["sender_pass"]
