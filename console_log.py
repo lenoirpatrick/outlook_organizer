@@ -6,15 +6,28 @@ from rich.console import Console
 
 
 def table_recap(inbox, sentitems, deleteditems):
-    """ Affiche un tableau récapitulatif des principaux répertoires Outlook """
+    """Affiche un tableau récapitulatif des principaux répertoires Outlook.
+
+    Args:
+        inbox: Répertoire Inbox.
+        sentitems: Répertoire Sent Items.
+        deleteditems: Répertoire Deleted Items.
+
+    Returns:
+        None
+    """
     table = Table(title="Répertoires Outlook")
 
+    # Ajoute des colonnes au tableau pour les répertoires et le nombre de messages
     table.add_column("Répertoire", justify="left", style="cyan", no_wrap=True)
     table.add_column("Nb Messages", style="magenta")
 
+    # Ajoute des lignes au tableau pour les répertoires Inbox, Sent Items et Deleted Items
     table.add_row("Inbox", str(len(inbox.Items)))
     table.add_row("Send Items", str(len(sentitems.Items)))
     table.add_row("Deleted Items", str(len(deleteditems.Items)))
+
+    # Affiche le tableau récapitulatif
     print(table)
 
 

@@ -7,11 +7,16 @@ from console_log import print_erreur
 
 
 def parse_dir(outlookdirin, outlookdirout, subject, config):
-    """ Permet de déplacer avec le même sujet dans un même répertoire
-    :param config:
-    :param win32com.client.CDispatch outlookdirin: Répertoire d'entrée à vérifier
-    :param win32com.client.CDispatch outlookdirout: Répertoire de copie en cas d'occurence trouvée
-    :param str subject: Sujet du mail à vérifier
+    """Analyse les messages dans un répertoire spécifique pour déplacer ceux correspondant à un sujet donné.
+
+    Args:
+        outlookdirin: Répertoire d'entrée contenant les messages à analyser.
+        outlookdirout: Répertoire de sortie où les messages correspondants seront déplacés.
+        subject (str): Sujet à rechercher dans les messages.
+        config: Configuration pour le déplacement des messages.
+
+    Returns:
+        None
     """
     move = True
     while move is True:
@@ -20,19 +25,35 @@ def parse_dir(outlookdirin, outlookdirout, subject, config):
             try:
                 subject2 = set_subject(message.Subject)
                 if len(subject) > 10:
+                    # Vérifie si le sujet est présent dans le message et déplace le message
                     if (subject2 in subject or subject in subject2) and subject2 != "" and subject != "":
                         move_message(message, outlookdirout, config, keep_in_inbox=False)
                         move = True
                         break
             except Exception as ex:
-                # print_exception()
+                # En cas d'erreur, affiche l'erreur avec le sujet du message
                 print_erreur("Err 004_2 : " + str(ex) + " / " + str(message.Subject))
 
 
 def set_indir(inbox, item):
+    """Définit le répertoire d'entrée pour un élément.
+
+    Args:
+        inbox: Boîte de réception principale.
+        item (dict): Élément avec les clés 'dir' et 'subdir'.
+
+    Returns:
+        folder: Répertoire d'entrée spécifié par 'dir' et 'subdir'.
+    """
+    # Vérifie l'existence du répertoire principal
     check_dir(inbox, item["dir"])
+
+    # Vérifie l'existence du sous-répertoire dans le répertoire principal
     check_dir(inbox.Folders[item["dir"]], item["subdir"])
+
+    # Accède au répertoire d'entrée spécifié par 'dir' et 'subdir'
     indir = inbox.Folders[item["dir"]].Folders[item["subdir"]]
+
     return indir
 
 

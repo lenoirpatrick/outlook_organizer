@@ -42,6 +42,7 @@
 - constants
 - email.mime.multipart
 - email.mime.text
+- os
 - outlook_organizer
 - rich
 - smtplib
@@ -74,13 +75,18 @@
 - Function: **__init__** (Classe: ***['self', 'jsonfile']***)
 - Function: **empty_trash** (Classe: ***['self']***)
 - Function: **delete_notifs_invits** (Classe: ***['self']***)
+- Function: **process_notif** (Classe: ***['item']***)
 - Function: **notifs_mails** (Classe: ***['self']***)
 - Function: **mails_projets** (Classe: ***['self']***)
 - Function: **mails_emails** (Classe: ***['self']***)
+- Function: **process_mails_in_userdir** (Classe: ***['nb_msg_indir', 'indir']***)
+- Function: **process_mails_in_indir** (Classe: ***['self', 'indir', 'item']***)
 - Function: **mails_from_me** (Classe: ***['self']***)
 - Function: **notifs_divers** (Classe: ***['self']***)
 - Function: **recap_email** (Classe: ***['self']***)
+- Function: **mails_sans_reponse_in_recap** (Classe: ***['self', 'item']***)
 - Function: **mails_sans_reponse** (Classe: ***['self']***)
+- Function: **process_sans_reponse** (Classe: ***['self', 'item']***)
 
 ## .\tools_dir.py
 
@@ -94,7 +100,7 @@
 
 ### Fonctions et classes
 
-- Function: **parse_dir** (Classe: ***['outlookdirin', 'outlookdirout', 'subject']***)
+- Function: **parse_dir** (Classe: ***['outlookdirin', 'outlookdirout', 'subject', 'config']***)
 - Function: **set_indir** (Classe: ***['inbox', 'item']***)
 - Function: **check_dir** (Classe: ***['dir', 'subdir']***)
 - Function: **set_archive_dir** (Classe: ***['indir', 'quarter', 'deletion_dir']***)
