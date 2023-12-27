@@ -158,7 +158,7 @@ class OutlookOrganizer:
                                 progress.advance(task)
                                 subject = set_subject(message.Subject)
                                 for liste in [inbox.Items, sentitems.Items]:
-                                    parse_dir(liste, indir, subject)
+                                    parse_dir(liste, indir, subject, self.config)
 
     def mails_emails(self):
         # Parcours des mails externe et interne
@@ -316,8 +316,8 @@ class OutlookOrganizer:
 
             self.index = self.index + 1
             if self.send_mail_recap is True:
-                self.body = self.body + "\n"
-                self.body = self.body + "Check des mails sans réponses : \n"
+                self.body += "\nCheck des mails sans réponses :\n"
+
             print_titre(str(self.index) + " - Check des mails sans réponses")
             with Progress(SpinnerColumn(), *Progress.get_default_columns(), TimeElapsedColumn(), ) as progress:
                 libelle = ("      Sent Items (" + str(len(sentitems.Items)) + ")").ljust(30)

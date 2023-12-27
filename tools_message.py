@@ -239,6 +239,11 @@ def save_attachment(attachments, attach_ext, dir, config, prefix_name=None):
         attach_ext: Extension à sélectionner
         dir: Répertoire où copier les fichiers
         prefix_name: Préfixe des fichiers à utiliser
+        :param prefix_name:
+        :param dir:
+        :param attachments:
+        :param attach_ext:
+        :param config:
     """
     relative_url = dir
 

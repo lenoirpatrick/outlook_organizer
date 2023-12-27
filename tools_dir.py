@@ -6,9 +6,9 @@ from tools_message import set_subject, move_message
 from console_log import print_erreur
 
 
-def parse_dir(outlookdirin, outlookdirout, subject):
+def parse_dir(outlookdirin, outlookdirout, subject, config):
     """ Permet de déplacer avec le même sujet dans un même répertoire
-
+    :param config:
     :param win32com.client.CDispatch outlookdirin: Répertoire d'entrée à vérifier
     :param win32com.client.CDispatch outlookdirout: Répertoire de copie en cas d'occurence trouvée
     :param str subject: Sujet du mail à vérifier
@@ -21,7 +21,7 @@ def parse_dir(outlookdirin, outlookdirout, subject):
                 subject2 = set_subject(message.Subject)
                 if len(subject) > 10:
                     if (subject2 in subject or subject in subject2) and subject2 != "" and subject != "":
-                        move_message(message, outlookdirout, keep_in_inbox=False)
+                        move_message(message, outlookdirout, config, keep_in_inbox=False)
                         move = True
                         break
             except Exception as ex:
