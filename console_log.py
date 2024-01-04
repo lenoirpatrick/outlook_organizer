@@ -118,12 +118,12 @@ def print_exception():
 
 
 def print_prologue(config):
-    repo = git.Repo(search_parent_directories=True)
-    sha = repo.head.object.hexsha
+    #repo = git.Repo(search_parent_directories=True)
+    #sha = repo.head.object.hexsha
 
     print("[[green3]OK[white]]     Initialisation du programme : " + os.path.basename(__file__))
     print("[[green3]OK[white]]         Librairies python")
-    print("[[green3]OK[white]]         Version git : " + sha)
+    #print("[[green3]OK[white]]         Version git : " + sha)
 
     print("[[green3]OK[white]]         Date : " + str(config["now"]))
 

@@ -164,7 +164,8 @@ def move_mail(item, folder, config, lookup_type="Subject"):
                     pass
 
                 except (Exception,):
-                    print_exception()
+                    # print_exception()
+                    pass
 
     move = True
     while move is True:
