@@ -24,6 +24,7 @@ class OutlookOrganizer:
         # utilisateur
         self.user_email = self.__config['user']['user_email']
         self.user_name = self.__config['user']['user_name']
+        self.__proxy_active = self.__config["user"]["proxy_active"]
         self.__proxy_address = self.__config["user"]["proxy_address"]
 
         # Sharepoint config
@@ -69,6 +70,7 @@ class OutlookOrganizer:
             "step_from_me": self.__config["etapes"]["from_me"],
             "step_email_appointments": self.__config["etapes"]["email_appointments"],
             "step_unread_mails": self.__config["etapes"]["unread_mails"],
+            "proxy_active": self.__proxy_active,
             "proxy_address": self.__proxy_address,
             "now": now,
             "jour_en_cours": jour_en_cours,

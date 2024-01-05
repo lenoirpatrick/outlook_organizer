@@ -133,8 +133,9 @@ def print_prologue(config):
     print("[[green3]OK[white]]         archivabledays: " + str(config["archivabledays"]))
 
     # Accès via Proxy
-    proxy_address = config["proxy_address"]
-    os.environ["HTTP_PROXY"] = proxy_address
-    print("[[green3]OK[white]]     Chargement du proxy")
-    print("[[green3]OK[white]]         " + proxy_address)
+    if config["proxy_active"] is True:
+        proxy_address = config["proxy_address"]
+        os.environ["HTTP_PROXY"] = proxy_address
+        print("[[green3]OK[white]]     Chargement du proxy")
+        print("[[green3]OK[white]]         " + proxy_address)
     print("---")
