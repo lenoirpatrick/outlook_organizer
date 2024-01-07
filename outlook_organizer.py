@@ -245,7 +245,7 @@ class OutlookOrganizer:
                 for user in item["users"]:
                     try:
                         if user.encode("latin-1").decode("utf-8").upper() in str(mail.Sender).upper():
-                            move_message(mail, indir, self.config, keep_in_inbox=True)
+                            move_message(mail, indir, self.config, keep_in_inbox=item["keepInInbox"])
                     except AttributeError:
                         pass
                     except (Exception,):

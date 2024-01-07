@@ -160,7 +160,7 @@ def move_mail(item, folder, config, lookup_type="Subject"):
                                     item.Move(folder)
                                     move = True
                                     break
-                except (AttributeError, ):
+                except AttributeError as EX:
                     pass
 
                 except (Exception,):
